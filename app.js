@@ -34,7 +34,7 @@ function updateContext(form) {
   const brand = form.elements.namedItem('brand')?.value;
   const type = form.elements.namedItem('type')?.value;
   const values = [type, brand].filter(Boolean);
-  context.textContent = values.length ? `В запросе: ${values.join(' · ')}` : '';
+  context.textContent = values.length ? `Вы выбрали: ${values.join(' · ')}` : '';
   context.hidden = !values.length;
 }
 formTabs.forEach(button => button.addEventListener('click', () => updateContext(document.getElementById(`${button.dataset.tab}-form`))));
@@ -87,8 +87,8 @@ document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('c
 }));
 document.getElementById('copy-open').addEventListener('click', () => document.getElementById('copy-dialog').showModal());
 const projects = {
-  silver: {title:'ЖК «Серебро»',description:'В публичном портфолио ЛифтКомфортСервис указаны поставка и монтаж 18 лифтов.',image:'assets/projects/silver.webp',alt:'Визуализация ЖК Серебро из портфолио ЛКС'},
-  clouds: {title:'ЖК «Облака 2.0», ЖД2',description:'В публичном портфолио ЛифтКомфортСервис указаны поставка и монтаж 14 лифтов.',image:'assets/projects/clouds.webp',alt:'Фото ЖК Облака 2.0 ЖД2 из портфолио ЛКС'}
+  silver: {title:'ЖК «Серебро»',description:'Поставили и смонтировали 18 лифтов в ЖК «Серебро».',image:'assets/projects/silver.webp',alt:'Визуализация ЖК Серебро из портфолио ЛКС'},
+  clouds: {title:'ЖК «Облака 2.0», ЖД2',description:'Поставили и смонтировали 14 лифтов в ЖК «Облака 2.0», ЖД2.',image:'assets/projects/clouds.webp',alt:'Фото ЖК Облака 2.0 ЖД2 из портфолио ЛКС'}
 };
 document.querySelectorAll('[data-project]').forEach(button => button.addEventListener('click', () => {
   const project = projects[button.dataset.project];
@@ -107,7 +107,7 @@ document.querySelectorAll('form').forEach(form => {
     event.preventDefault();
     const contact = form.elements.namedItem('contact');
     if (!contact.value.trim()) {
-      contact.setCustomValidity('Укажите демонстрационный контакт для проверки сценария.');
+      contact.setCustomValidity('Введите контакт для проверки формы.');
       contact.reportValidity();
       return;
     }
@@ -170,3 +170,8 @@ if ('IntersectionObserver' in window) {
   observer.observe(document.getElementById('top'));
   observer.observe(document.getElementById('request'));
 }
+
+document.querySelectorAll('[data-messenger]').forEach(button => button.addEventListener('click', () => {
+  document.getElementById('messenger-title').textContent = button.dataset.messenger;
+  document.getElementById('messenger-dialog').showModal();
+}));
