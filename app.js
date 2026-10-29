@@ -33,7 +33,7 @@ const context = document.getElementById('form-context');
 function updateContext(form) {
   const brand = form.elements.namedItem('brand')?.value;
   const type = form.elements.namedItem('type')?.value;
-  const values = [type, brand].filter(Boolean);
+  const values = [type, brand].filter(value => value && value !== 'Пока не знаю');
   context.textContent = values.length ? `Вы выбрали: ${values.join(' · ')}` : '';
   context.hidden = !values.length;
 }
@@ -44,15 +44,23 @@ document.querySelectorAll('[data-lead]').forEach(button => button.addEventListen
   const mode = button.dataset.lead;
   activateTabs(formTabs, formTabs.findIndex(tab => tab.dataset.tab === mode), tab => `panel-${tab.dataset.tab}`);
   const form = document.getElementById(`${mode}-form`);
-  for (const [dataKey, fieldName] of [['brand', 'brand'], ['goal', 'goal'], ['object', 'type']]) {
+  for (const [dataKey, fieldName] of [['brand','brand'],['goal','goal'],['object','type']]) {
     const field = form.elements.namedItem(fieldName);
     if (button.dataset[dataKey] && field) field.value = button.dataset[dataKey];
   }
-  if (button.dataset.brand || button.dataset.goal) form.querySelector('.advanced-parameters').open = true;
   updateContext(form);
-  document.getElementById('request').scrollIntoView({block:'start', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
-  form.elements.namedItem('contact').focus({preventScroll:true});
+  if (mode === 'selection') {
+    showQuizStep(button.dataset.brand || button.dataset.object || button.dataset.goal ? 0 : quizStep, true);
+  } else {
+    if (button.dataset.brand || button.dataset.goal) form.querySelector('.advanced-parameters').open = true;
+    scrollToRequest();
+    form.elements.namedItem('contact').focus({preventScroll:true});
+  }
 }));
+
+function scrollToRequest() {
+  document.querySelector('.request-card').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
 
 document.querySelectorAll('[data-equipment-view]').forEach(button => button.addEventListener('click', () => {
   const table = button.dataset.equipmentView === 'table';
@@ -103,6 +111,7 @@ document.querySelector('input[type=file]').addEventListener('change', event => {
   document.getElementById('file-name').textContent = event.target.files[0]?.name || 'Выбрать файл ↗';
 });
 document.querySelectorAll('form').forEach(form => {
+  if (form.id === 'selection-form') return;
   form.addEventListener('submit', event => {
     event.preventDefault();
     const contact = form.elements.namedItem('contact');
@@ -175,3 +184,116 @@ document.querySelectorAll('[data-messenger]').forEach(button => button.addEventL
   document.getElementById('messenger-title').textContent = button.dataset.messenger;
   document.getElementById('messenger-dialog').showModal();
 }));
+
+const quizForm = document.getElementById('selection-form');
+const quizSteps = [...quizForm.querySelectorAll('[data-quiz-step]')];
+let quizStep = 0;
+const quizError = document.getElementById('quiz-error');
+const quizHeight = document.getElementById('quiz-height');
+const quizHeightUnit = document.getElementById('quiz-height-unit');
+const quizHeightUnknown = document.getElementById('quiz-height-unknown');
+const quizSummary = document.getElementById('quiz-summary-list');
+
+function quizValue(name) { return quizForm.elements.namedItem(name)?.value || ''; }
+function updateQuizHeight() {
+  const floors = quizHeightUnit.value === 'floors';
+  quizHeight.disabled = quizHeightUnknown.checked;
+  quizHeightUnit.disabled = quizHeightUnknown.checked;
+  quizHeight.min = floors ? '1' : '0.1';
+  quizHeight.step = floors ? '1' : 'any';
+  quizHeight.inputMode = floors ? 'numeric' : 'decimal';
+  quizHeight.placeholder = floors ? 'Например, 35' : 'Например, 120';
+  document.getElementById('quiz-height-label').textContent = floors ? 'Количество этажей' : 'Высота подъёма, м';
+}
+function updateQuizSummary() {
+  const height = quizHeightUnknown.checked ? 'Пока не знаю' : quizHeight.value ? `${quizHeight.value} ${quizHeightUnit.value === 'floors' ? 'эт.' : 'м подъёма'}` : 'Не указано';
+  const answers = [
+    ['Здание',quizValue('type') || 'Не указано'],
+    [quizHeightUnit.value === 'floors' || quizHeightUnknown.checked ? 'Этажность / высота' : 'Высота подъёма',height],
+    ['Количество лифтов',quizValue('quantity') || 'Не указано'],
+    ['Этап проекта',quizValue('stage') || 'Не указано']
+  ];
+  if (quizValue('brand')) answers.push(['Пожелания по бренду',quizValue('brand')]);
+  if (quizValue('goal') !== 'Расчёт поставки и монтажа') answers.push(['С чем помочь',quizValue('goal')]);
+  quizSummary.replaceChildren();
+  answers.forEach(([label,value]) => {
+    const row = document.createElement('div');
+    const term = document.createElement('dt'); term.textContent = label;
+    const detail = document.createElement('dd'); detail.textContent = value;
+    row.append(term,detail); quizSummary.append(row);
+  });
+}
+function showQuizStep(index, focus = false) {
+  quizStep = Math.max(0,Math.min(quizSteps.length-1,index));
+  quizSteps.forEach((step,i) => { step.hidden = i !== quizStep; });
+  document.getElementById('quiz-counter').textContent = `Шаг ${quizStep+1} из ${quizSteps.length}`;
+  document.getElementById('quiz-progress').setAttribute('aria-valuenow',String(quizStep+1));
+  document.getElementById('quiz-progress-fill').style.width = `${(quizStep+1)/quizSteps.length*100}%`;
+  document.querySelectorAll('.quiz-stages li').forEach((item,i) => {
+    item.classList.toggle('is-complete',i<quizStep);
+    if (i === quizStep) item.setAttribute('aria-current','step'); else item.removeAttribute('aria-current');
+  });
+  document.getElementById('quiz-back').hidden = quizStep === 0;
+  document.getElementById('quiz-next').hidden = quizStep === quizSteps.length-1;
+  document.getElementById('quiz-submit').hidden = quizStep !== quizSteps.length-1;
+  document.getElementById('quiz-bottom-hint').textContent = quizStep === quizSteps.length-1 ? 'Обязателен только контакт. Файл и пожелания можно не добавлять.' : 'Если данных нет, выбирайте «Пока не знаю».';
+  quizError.hidden = true;
+  updateQuizHeight(); updateQuizSummary(); updateContext(quizForm);
+  if (focus) {
+    scrollToRequest();
+    quizSteps[quizStep].querySelector('h3').focus({preventScroll:true});
+  }
+}
+function validateQuizStep() {
+  let error = '';
+  let field;
+  if (quizStep === 0 && !quizValue('type')) { error = 'Выберите тип здания или «Пока не знаю».'; field = quizForm.querySelector('[name=type]'); }
+  if (quizStep === 1 && !quizHeightUnknown.checked) {
+    const value = Number(quizHeight.value);
+    const floors = quizHeightUnit.value === 'floors';
+    if (!quizHeight.value || !Number.isFinite(value) || value <= 0 || (floors && !Number.isInteger(value))) {
+      error = floors ? 'Укажите количество этажей целым числом или выберите «Пока не знаю».' : 'Укажите высоту подъёма в метрах или выберите «Пока не знаю».';
+      field = quizHeight;
+    }
+  }
+  if (quizStep === 2 && !quizValue('quantity')) { error = 'Выберите количество лифтов или «Пока не знаю».'; field = quizForm.querySelector('[name=quantity]'); }
+  if (quizStep === 3 && !quizValue('stage')) { error = 'Выберите этап проекта или «Пока не знаю».'; field = quizForm.querySelector('[name=stage]'); }
+  quizError.textContent = error; quizError.hidden = !error;
+  if (error && field) field.focus({preventScroll:true});
+  return !error;
+}
+document.getElementById('quiz-next').addEventListener('click', () => { if (validateQuizStep()) showQuizStep(quizStep+1,true); });
+document.getElementById('quiz-back').addEventListener('click', () => showQuizStep(quizStep-1,true));
+document.getElementById('quiz-edit').addEventListener('click', () => showQuizStep(0,true));
+document.getElementById('quiz-restart').addEventListener('click', () => {
+  quizForm.reset();
+  quizForm.querySelectorAll('details').forEach(details => { details.open = false; });
+  quizForm.elements.namedItem('contact').setCustomValidity('');
+  document.getElementById('quiz-file-name').textContent = 'Выбрать файл ↗';
+  showQuizStep(0,true);
+});
+quizForm.addEventListener('input', () => { quizError.hidden = true; updateQuizSummary(); });
+quizForm.addEventListener('change', () => { updateQuizHeight(); updateQuizSummary(); updateContext(quizForm); quizError.hidden = true; });
+quizForm.querySelector('input[type=file]').addEventListener('change',event => {
+  document.getElementById('quiz-file-name').textContent = event.target.files[0]?.name || 'Выбрать файл ↗';
+});
+quizForm.elements.namedItem('contact').addEventListener('input',event => event.target.setCustomValidity(''));
+quizForm.addEventListener('submit',event => {
+  event.preventDefault();
+  if (quizStep < quizSteps.length-1) {
+    if (validateQuizStep()) showQuizStep(quizStep+1,true);
+    return;
+  }
+  const contact = quizForm.elements.namedItem('contact');
+  if (!contact.value.trim()) {
+    contact.setCustomValidity('Введите контакт для проверки формы.'); contact.reportValidity(); return;
+  }
+  contact.setCustomValidity('');
+  updateQuizSummary();
+  document.getElementById('demo-dialog').showModal();
+});
+showQuizStep(0);
+if (location.hash === '#quiz') {
+  activateTabs(formTabs,formTabs.findIndex(tab => tab.dataset.tab === 'selection'),tab => `panel-${tab.dataset.tab}`);
+  showQuizStep(0,true);
+}
