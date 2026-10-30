@@ -366,3 +366,25 @@ equipmentRequestForm.addEventListener('submit', event => {
   equipmentRequestDialog.close();
   document.getElementById('demo-dialog').showModal();
 });
+
+const documentDialog = document.getElementById('document-dialog');
+const documentCards = [...document.querySelectorAll('.document-card')];
+let activeDocument = 0;
+function showDocument(index) {
+  activeDocument = (index + documentCards.length) % documentCards.length;
+  const card = documentCards[activeDocument];
+  document.getElementById('document-dialog-title').textContent = card.querySelector('h3').textContent;
+  document.getElementById('document-dialog-date').textContent = card.querySelector('.document-date').textContent;
+  const image = document.getElementById('document-dialog-image');
+  image.src = card.querySelector('img').src;
+  image.alt = card.querySelector('img').alt;
+  document.getElementById('document-pdf').href = card.querySelector('a').href;
+  document.getElementById('document-counter').textContent = `${activeDocument+1} / ${documentCards.length}`;
+  documentDialog.scrollTop = 0;
+}
+documentCards.forEach((card,index) => card.querySelector('button').addEventListener('click', () => { showDocument(index); documentDialog.showModal(); }));
+document.getElementById('document-prev').addEventListener('click', () => showDocument(activeDocument-1));
+document.getElementById('document-next').addEventListener('click', () => showDocument(activeDocument+1));
+documentDialog.addEventListener('keydown', event => {
+  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); showDocument(activeDocument+(event.key === 'ArrowRight' ? 1 : -1)); }
+});
