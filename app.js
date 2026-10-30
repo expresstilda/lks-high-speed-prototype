@@ -111,7 +111,7 @@ document.querySelector('input[type=file]').addEventListener('change', event => {
   document.getElementById('file-name').textContent = event.target.files[0]?.name || 'Выбрать файл ↗';
 });
 document.querySelectorAll('form').forEach(form => {
-  if (form.id === 'selection-form') return;
+  if (form.id !== 'tz-form') return;
   form.addEventListener('submit', event => {
     event.preventDefault();
     const contact = form.elements.namedItem('contact');
@@ -236,7 +236,7 @@ function showQuizStep(index, focus = false) {
   document.getElementById('quiz-back').hidden = quizStep === 0;
   document.getElementById('quiz-next').hidden = quizStep === quizSteps.length-1;
   document.getElementById('quiz-submit').hidden = quizStep !== quizSteps.length-1;
-  document.getElementById('quiz-bottom-hint').textContent = quizStep === quizSteps.length-1 ? 'Обязателен только контакт. Файл и пожелания можно не добавлять.' : 'Если данных нет, выбирайте «Пока не знаю».';
+  document.getElementById('quiz-bottom-hint').textContent = quizStep === quizSteps.length-1 ? 'Обязателен только телефон. Email, файл и пожелания можно не добавлять.' : 'Если данных нет, выбирайте «Пока не знаю».';
   quizError.hidden = true;
   updateQuizHeight(); updateQuizSummary(); updateContext(quizForm);
   if (focus) {
@@ -268,7 +268,8 @@ document.getElementById('quiz-edit').addEventListener('click', () => showQuizSte
 document.getElementById('quiz-restart').addEventListener('click', () => {
   quizForm.reset();
   quizForm.querySelectorAll('details').forEach(details => { details.open = false; });
-  quizForm.elements.namedItem('contact').setCustomValidity('');
+  quizForm.elements.namedItem('phone').setCustomValidity('');
+  quizForm.elements.namedItem('email').setCustomValidity('');
   document.getElementById('quiz-file-name').textContent = 'Выбрать файл ↗';
   showQuizStep(0,true);
 });
@@ -277,18 +278,18 @@ quizForm.addEventListener('change', () => { updateQuizHeight(); updateQuizSummar
 quizForm.querySelector('input[type=file]').addEventListener('change',event => {
   document.getElementById('quiz-file-name').textContent = event.target.files[0]?.name || 'Выбрать файл ↗';
 });
-quizForm.elements.namedItem('contact').addEventListener('input',event => event.target.setCustomValidity(''));
+quizForm.elements.namedItem('phone').addEventListener('input',event => event.target.setCustomValidity(''));
+quizForm.elements.namedItem('email').addEventListener('input',event => event.target.setCustomValidity(''));
 quizForm.addEventListener('submit',event => {
   event.preventDefault();
   if (quizStep < quizSteps.length-1) {
     if (validateQuizStep()) showQuizStep(quizStep+1,true);
     return;
   }
-  const contact = quizForm.elements.namedItem('contact');
-  if (!contact.value.trim()) {
-    contact.setCustomValidity('Введите контакт для проверки формы.'); contact.reportValidity(); return;
-  }
-  contact.setCustomValidity('');
+  const phone = quizForm.elements.namedItem('phone');
+  if (!validatePhone(phone)) return;
+  const email = quizForm.elements.namedItem('email');
+  if (!email.checkValidity()) { email.reportValidity(); return; }
   updateQuizSummary();
   document.getElementById('demo-dialog').showModal();
 });
@@ -297,3 +298,23 @@ if (location.hash === '#quiz') {
   activateTabs(formTabs,formTabs.findIndex(tab => tab.dataset.tab === 'selection'),tab => `panel-${tab.dataset.tab}`);
   showQuizStep(0,true);
 }
+
+function validatePhone(field) {
+  const digits = field.value.replace(/\D/g,'');
+  const valid = /^[+\d\s().-]+$/.test(field.value.trim()) && digits.length >= 7 && digits.length <= 15;
+  field.setCustomValidity(valid ? '' : 'Введите номер телефона (от 7 до 15 цифр).');
+  if (!valid) field.reportValidity();
+  return valid;
+}
+const quickDialog = document.getElementById('quick-contact-dialog');
+const quickForm = document.getElementById('quick-contact-form');
+document.getElementById('quick-contact-open').addEventListener('click', () => quickDialog.showModal());
+quickForm.querySelectorAll('input').forEach(input => input.addEventListener('input', () => input.setCustomValidity('')));
+quickForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const name = quickForm.elements.namedItem('name');
+  name.setCustomValidity(name.value.trim() ? '' : 'Введите имя.');
+  if (!name.reportValidity() || !validatePhone(quickForm.elements.namedItem('phone'))) return;
+  quickDialog.close();
+  document.getElementById('demo-dialog').showModal();
+});
