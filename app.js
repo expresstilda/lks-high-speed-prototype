@@ -54,7 +54,7 @@ document.querySelectorAll('[data-lead]').forEach(button => button.addEventListen
   } else {
     if (button.dataset.brand || button.dataset.goal) form.querySelector('.advanced-parameters').open = true;
     scrollToRequest();
-    form.elements.namedItem('contact').focus({preventScroll:true});
+    form.elements.namedItem('phone').focus({preventScroll:true});
   }
 }));
 
@@ -117,17 +117,14 @@ document.querySelectorAll('form').forEach(form => {
   if (form.id !== 'tz-form') return;
   form.addEventListener('submit', event => {
     event.preventDefault();
-    const contact = form.elements.namedItem('contact');
-    if (!contact.value.trim()) {
-      contact.setCustomValidity('Введите контакт для проверки формы.');
-      contact.reportValidity();
-      return;
-    }
-    contact.setCustomValidity('');
+    const phone = form.elements.namedItem('phone');
+    if (!validatePhone(phone)) return;
+    const email = form.elements.namedItem('email');
+    if (!email.checkValidity()) { email.reportValidity(); return; }
     closeRequestModal();
     document.getElementById('demo-dialog').showModal();
   });
-  form.elements.namedItem('contact').addEventListener('input', event => event.target.setCustomValidity(''));
+  form.elements.namedItem('phone').addEventListener('input', event => event.target.setCustomValidity(''));
 });
 
 const photoDialog = document.getElementById('equipment-photo-dialog');
@@ -344,5 +341,5 @@ document.querySelectorAll('[data-modal-lead]').forEach(button => button.addEvent
   if (mode === 'selection') showQuizStep(quizStep);
   requestModal.showModal();
   if (mode === 'selection') quizSteps[quizStep].querySelector('h3').focus({preventScroll:true});
-  else document.getElementById('tz-form').elements.namedItem('contact').focus({preventScroll:true});
+  else document.getElementById('tz-form').elements.namedItem('phone').focus({preventScroll:true});
 }));
