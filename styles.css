@@ -41,3 +41,5 @@ dialog{background:var(--paper);color:var(--ink);border:1px solid #b9cbb0;border-
 .commercial-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}@container(max-width:760px){.commercial-benefits{grid-template-columns:1fr}}
 
 .hero-modal-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px 15px;margin-top:15px;font-size:11px;color:var(--muted)}.hero-modal-actions button{background:none;color:var(--ink);font:inherit;text-decoration:underline;text-underline-offset:3px;padding:4px 0}#request-modal{max-width:720px;padding:34px}#request-modal h2{padding-right:30px;font-size:25px;margin-bottom:20px}#request-modal .request-card{box-shadow:none}@media(max-width:760px){#request-modal{padding:29px 16px}#request-modal .request-card{padding:18px}}
+
+.request-card label>.required-star,.quick-contact-form label>.required-star{float:none;padding:0;color:var(--accent);font-size:inherit;font-weight:600}.required-note{font-size:11px;color:var(--muted);margin:0;line-height:1.5}.quiz-step .required-note{margin-bottom:12px}

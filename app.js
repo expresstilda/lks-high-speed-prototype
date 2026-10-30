@@ -117,6 +117,9 @@ document.querySelectorAll('form').forEach(form => {
   if (form.id !== 'tz-form') return;
   form.addEventListener('submit', event => {
     event.preventDefault();
+    const name = form.elements.namedItem('name');
+    name.setCustomValidity(name.value.trim() ? '' : 'Введите имя.');
+    if (!name.reportValidity()) return;
     const phone = form.elements.namedItem('phone');
     if (!validatePhone(phone)) return;
     const email = form.elements.namedItem('email');
@@ -124,6 +127,7 @@ document.querySelectorAll('form').forEach(form => {
     closeRequestModal();
     document.getElementById('demo-dialog').showModal();
   });
+  form.elements.namedItem('name').addEventListener('input', event => event.target.setCustomValidity(''));
   form.elements.namedItem('phone').addEventListener('input', event => event.target.setCustomValidity(''));
 });
 
@@ -237,7 +241,7 @@ function showQuizStep(index, focus = false) {
   document.getElementById('quiz-back').hidden = quizStep === 0;
   document.getElementById('quiz-next').hidden = quizStep === quizSteps.length-1;
   document.getElementById('quiz-submit').hidden = quizStep !== quizSteps.length-1;
-  document.getElementById('quiz-bottom-hint').textContent = quizStep === quizSteps.length-1 ? 'Обязателен только телефон. Email, файл и пожелания можно не добавлять.' : 'Если данных нет, выбирайте «Пока не знаю».';
+  document.getElementById('quiz-bottom-hint').textContent = quizStep === quizSteps.length-1 ? 'Email, файл и пожелания можно не добавлять.' : 'Если данных нет, выбирайте «Пока не знаю».';
   quizError.hidden = true;
   updateQuizHeight(); updateQuizSummary(); updateContext(quizForm);
   if (focus) {
@@ -341,5 +345,5 @@ document.querySelectorAll('[data-modal-lead]').forEach(button => button.addEvent
   if (mode === 'selection') showQuizStep(quizStep);
   requestModal.showModal();
   if (mode === 'selection') quizSteps[quizStep].querySelector('h3').focus({preventScroll:true});
-  else document.getElementById('tz-form').elements.namedItem('phone').focus({preventScroll:true});
+  else document.getElementById('tz-form').elements.namedItem('name').focus({preventScroll:true});
 }));
