@@ -340,9 +340,12 @@ function closeRequestModal() {
 requestModal.addEventListener('close', restoreRequestCard);
 document.querySelectorAll('[data-modal-lead]').forEach(button => button.addEventListener('click', () => {
   const mode = button.dataset.modalLead;
+  if (mode === 'selection' && button.dataset.object) {
+    quizForm.elements.namedItem('type').value = button.dataset.object;
+  }
   document.getElementById('request-modal-content').append(requestCard);
   activateTabs(formTabs, formTabs.findIndex(tab => tab.dataset.tab === mode), tab => `panel-${tab.dataset.tab}`);
-  if (mode === 'selection') showQuizStep(quizStep);
+  if (mode === 'selection') showQuizStep(button.dataset.object ? 0 : quizStep);
   requestModal.showModal();
   if (mode === 'selection') quizSteps[quizStep].querySelector('h3').focus({preventScroll:true});
   else document.getElementById('tz-form').elements.namedItem('name').focus({preventScroll:true});
