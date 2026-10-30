@@ -59,6 +59,7 @@ document.querySelectorAll('[data-lead]').forEach(button => button.addEventListen
 }));
 
 function scrollToRequest() {
+  if (document.getElementById('request-modal').open) { document.getElementById('request-modal').scrollTop = 0; return; }
   document.querySelector('.request-card').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
 
@@ -123,6 +124,7 @@ document.querySelectorAll('form').forEach(form => {
       return;
     }
     contact.setCustomValidity('');
+    closeRequestModal();
     document.getElementById('demo-dialog').showModal();
   });
   form.elements.namedItem('contact').addEventListener('input', event => event.target.setCustomValidity(''));
@@ -293,6 +295,7 @@ quizForm.addEventListener('submit',event => {
   const email = quizForm.elements.namedItem('email');
   if (!email.checkValidity()) { email.reportValidity(); return; }
   updateQuizSummary();
+  closeRequestModal();
   document.getElementById('demo-dialog').showModal();
 });
 showQuizStep(0);
@@ -320,3 +323,26 @@ quickForm.addEventListener('submit', event => {
   quickDialog.close();
   document.getElementById('demo-dialog').showModal();
 });
+
+const requestModal = document.getElementById('request-modal');
+const requestCard = document.querySelector('.request-card');
+const requestHome = document.createComment('request card position');
+requestCard.before(requestHome);
+function restoreRequestCard() {
+  if (requestCard.parentElement !== requestHome.parentElement) requestHome.after(requestCard);
+}
+function closeRequestModal() {
+  if (!requestModal.open) return;
+  restoreRequestCard();
+  requestModal.close();
+}
+requestModal.addEventListener('close', restoreRequestCard);
+document.querySelectorAll('[data-modal-lead]').forEach(button => button.addEventListener('click', () => {
+  const mode = button.dataset.modalLead;
+  document.getElementById('request-modal-content').append(requestCard);
+  activateTabs(formTabs, formTabs.findIndex(tab => tab.dataset.tab === mode), tab => `panel-${tab.dataset.tab}`);
+  if (mode === 'selection') showQuizStep(quizStep);
+  requestModal.showModal();
+  if (mode === 'selection') quizSteps[quizStep].querySelector('h3').focus({preventScroll:true});
+  else document.getElementById('tz-form').elements.namedItem('contact').focus({preventScroll:true});
+}));
