@@ -350,3 +350,19 @@ document.querySelectorAll('[data-modal-lead]').forEach(button => button.addEvent
   if (mode === 'selection') quizSteps[quizStep].querySelector('h3').focus({preventScroll:true});
   else document.getElementById('tz-form').elements.namedItem('name').focus({preventScroll:true});
 }));
+
+const equipmentRequestDialog = document.getElementById('equipment-request-dialog');
+const equipmentRequestForm = document.getElementById('equipment-request-form');
+document.getElementById('equipment-request-open').addEventListener('click', () => equipmentRequestDialog.showModal());
+equipmentRequestForm.querySelectorAll('input').forEach(input => input.addEventListener('input', () => input.setCustomValidity('')));
+equipmentRequestForm.elements.namedItem('project').addEventListener('change', event => {
+  document.getElementById('equipment-file-name').textContent = event.target.files[0]?.name || 'Выбрать файл ↗';
+});
+equipmentRequestForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const name = equipmentRequestForm.elements.namedItem('name');
+  name.setCustomValidity(name.value.trim() ? '' : 'Введите имя.');
+  if (!name.reportValidity() || !validatePhone(equipmentRequestForm.elements.namedItem('phone'))) return;
+  equipmentRequestDialog.close();
+  document.getElementById('demo-dialog').showModal();
+});
