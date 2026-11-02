@@ -388,3 +388,18 @@ document.getElementById('document-next').addEventListener('click', () => showDoc
 documentDialog.addEventListener('keydown', event => {
   if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); showDocument(activeDocument+(event.key === 'ArrowRight' ? 1 : -1)); }
 });
+
+document.getElementById('designer-open').addEventListener('click', () => document.getElementById('designer-dialog').showModal());
+
+// Keep sticky offsets in sync with the real header and prototype toolbar heights.
+if ('ResizeObserver' in window) {
+  const reviewBar = document.querySelector('.review-bar');
+  const pageHeader = document.querySelector('.header');
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty('--review-bar-height', `${reviewBar.getBoundingClientRect().height}px`);
+    document.documentElement.style.setProperty('--page-header-height', `${pageHeader.getBoundingClientRect().height}px`);
+  }).observe(reviewBar);
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty('--page-header-height', `${pageHeader.getBoundingClientRect().height}px`);
+  }).observe(pageHeader);
+}
