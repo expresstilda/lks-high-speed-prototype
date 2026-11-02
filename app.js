@@ -96,10 +96,10 @@ document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('c
 }));
 document.getElementById('copy-open').addEventListener('click', () => document.getElementById('copy-dialog').showModal());
 const projects = {
-  silver: {title:'ЖК «Серебро»',description:'Поставили и смонтировали 18 лифтов в ЖК «Серебро».',image:'assets/projects/silver.webp',alt:'Визуализация ЖК Серебро из портфолио ЛКС'},
-  clouds: {title:'ЖК «Облака 2.0», ЖД2',description:'Поставили и смонтировали 14 лифтов в ЖК «Облака 2.0», ЖД2.',image:'assets/projects/clouds.webp',alt:'Фото ЖК Облака 2.0 ЖД2 из портфолио ЛКС'},
-  yaroslavl: {title:'ЖК «Сердце Ярославля»',description:'Поставили и смонтировали 12 лифтов в ЖК «Сердце Ярославля».',image:'assets/projects/yaroslavl.webp',alt:'Визуализация ЖК Сердце Ярославля из портфолио ЛКС'},
-  novotomilino: {title:'ЖК «Новотомилино»',description:'Поставили и смонтировали 12 лифтов в ЖК «Новотомилино».',image:'assets/projects/novotomilino.webp',alt:'Фото ЖК Новотомилино из портфолио ЛКС'}
+  silver: {title:'ЖК «Серебро»',description:'Поставили и смонтировали 18 лифтов в ЖК «Серебро».',image:'assets/placeholders/silver.svg',alt:'Место для изображения: ЖК «Серебро»'},
+  clouds: {title:'ЖК «Облака 2.0», ЖД2',description:'Поставили и смонтировали 14 лифтов в ЖК «Облака 2.0», ЖД2.',image:'assets/placeholders/clouds.svg',alt:'Место для изображения: ЖК «Облака 2.0»'},
+  yaroslavl: {title:'ЖК «Сердце Ярославля»',description:'Поставили и смонтировали 12 лифтов в ЖК «Сердце Ярославля».',image:'assets/placeholders/yaroslavl.svg',alt:'Место для изображения: ЖК «Сердце Ярославля»'},
+  novotomilino: {title:'ЖК «Новотомилино»',description:'Поставили и смонтировали 12 лифтов в ЖК «Новотомилино».',image:'assets/placeholders/novotomilino.svg',alt:'Место для изображения: ЖК «Новотомилино»'}
 };
 document.querySelectorAll('[data-project]').forEach(button => button.addEventListener('click', () => {
   const project = projects[button.dataset.project];
