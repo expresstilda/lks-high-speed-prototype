@@ -403,3 +403,33 @@ if ('ResizeObserver' in window) {
     document.documentElement.style.setProperty('--page-header-height', `${pageHeader.getBoundingClientRect().height}px`);
   }).observe(pageHeader);
 }
+
+// Prototype consent UI: no requests, file transfer or legal consent evidence is sent.
+document.addEventListener('submit', event => {
+  if (event.target.id === 'selection-form' && quizStep < quizSteps.length-1) return;
+  const consent = event.target.elements?.namedItem('pd_consent');
+  if (consent && !consent.checked) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    consent.setCustomValidity('Чтобы продолжить, отметьте согласие на обработку персональных данных.');
+    consent.reportValidity();
+  }
+}, true);
+document.querySelectorAll('[name=pd_consent]').forEach(field => field.addEventListener('change', () => field.setCustomValidity('')));
+const cookieKey = 'lks-prototype-cookie-choice-v1';
+let cookieChoice = null;
+try { cookieChoice = localStorage.getItem(cookieKey); } catch (_) {}
+const cookieBanner = document.getElementById('cookie-banner');
+const cookieDialog = document.getElementById('cookie-dialog');
+if (!['necessary','analytics'].includes(cookieChoice)) { cookieChoice = null; cookieBanner.hidden = false; }
+function updateCookieStatus() {
+  document.getElementById('cookie-current').textContent = cookieChoice === 'analytics' ? 'Ваш выбор: разрешена аналитика.' : cookieChoice === 'necessary' ? 'Ваш выбор: только необходимые cookie.' : 'Выбор ещё не сделан.';
+}
+document.querySelectorAll('[data-cookie-choice]').forEach(button => button.addEventListener('click', () => {
+  cookieChoice = button.dataset.cookieChoice;
+  try { localStorage.setItem(cookieKey,cookieChoice); } catch (_) {}
+  cookieBanner.hidden = true;
+  updateCookieStatus();
+  if (cookieDialog.open) cookieDialog.close();
+}));
+document.querySelectorAll('[data-cookie-settings]').forEach(button => button.addEventListener('click', () => { updateCookieStatus(); cookieDialog.showModal(); }));
